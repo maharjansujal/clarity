@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import TransactionList from "@/components/TransactionList";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -55,9 +56,7 @@ export default async function DashboardPage() {
 
         {/* Transactions Placeholder */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow p-6">
-          <p className="text-slate-600 dark:text-slate-300">
-            No transactions yet.
-          </p>
+          <TransactionList/>
         </div>
       </div>
     </main>
