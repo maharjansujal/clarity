@@ -1,31 +1,32 @@
-import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { hash } from "bcrypt";
 
 export async function POST(req: Request) {
-  const { email, password } = await req.json();
-
-  if (!email || !password) {
-    return NextResponse.json({ error: "Email and password required" }, { status: 400 });
-  }
-
-  const hashedPassword = await hash(password, 10);
-
-  const client = await pool.connect();
   try {
-    const result = await client.query(
-      "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email",
-      [email, hashedPassword]
-    );
-    const user = result.rows[0];
-    return NextResponse.json({ user });
-  } catch (error: any) {
-    if (error.code === "23505") { // unique_violation
-      return NextResponse.json({ error: "Email already exists" }, { status: 400 });
+    const { email, password } = await req.json();
+
+    // Check if user exists
+    const res = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    if (res.rows.length > 0) {
+      return new Response(
+        JSON.stringify({ message: "Email already registered" }),
+        { status: 400 }
+      );
     }
-    console.error(error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  } finally {
-    client.release();
+
+    // Hash password & insert user
+    const hashed = await hash(password, 10);
+    await pool.query("INSERT INTO users (email, password) VALUES ($1, $2)", [
+      email,
+      hashed,
+    ]);
+
+    return new Response(JSON.stringify({ success: true }), { status: 201 });
+  } catch (err) {
+    console.error(err);
+    return new Response(
+      JSON.stringify({ message: "Internal server error" }),
+      { status: 500 }
+    );
   }
 }

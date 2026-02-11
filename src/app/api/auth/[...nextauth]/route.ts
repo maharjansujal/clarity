@@ -19,7 +19,7 @@ export const authOptions: AuthOptions = {
         try {
           const res = await client.query(
             "SELECT * FROM users WHERE email = $1",
-            [credentials.email]
+            [credentials.email],
           );
           const user = res.rows[0];
           if (!user) return null;
@@ -27,7 +27,6 @@ export const authOptions: AuthOptions = {
           const isValid = await compare(credentials.password, user.password);
           if (!isValid) return null;
 
-          // Return what NextAuth stores in session
           return { id: user.id, email: user.email };
         } finally {
           client.release();
@@ -39,7 +38,7 @@ export const authOptions: AuthOptions = {
     strategy: "jwt",
   },
   pages: {
-    signIn: "/auth/login",
+    signIn: "/login",
   },
 };
 
