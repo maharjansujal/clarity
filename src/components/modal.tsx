@@ -22,19 +22,24 @@ export default function Modal({
     >
       <div
         className="absolute rounded-lg shadow-xl flex flex-col select-none bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700"
-        style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: "720px", width: "100%" }}
+        style={{
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "100%",
+          maxWidth: "720px",
+          maxHeight: "90vh",
+        }}
       >
         {/* HEADER */}
-        <div
-          className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex justify-between items-center rounded-t-lg"
-        >
-          <h1 className="font-bold">{title}</h1>
+        <div className="px-4 py-3 flex justify-between items-center rounded-t-lg">
+          <h1 className="font-bold text-2xl">{title}</h1>
           <button
             onClick={(e) => {
               e.stopPropagation();
               onClose();
             }}
-            className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 text-xl"
+            className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 text-xl cursor-pointer"
             title="close"
           >
             ✕
