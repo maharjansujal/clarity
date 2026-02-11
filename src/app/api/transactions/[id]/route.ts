@@ -11,17 +11,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const transaction_id = params.id;
 
   try {
-    const { type, amount, category, description, date } = await req.json();
+    const { type, amount, category, description, date, title } = await req.json();
 
-    if (!type || !amount || !category || !date) {
+    if (!type || !amount || !category || !date || !title) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
     await pool.query(
       `UPDATE transactions 
-       SET type=$1, amount=$2, category=$3, description=$4, date=$5 
+       SET type=$1, amount=$2, category=$3, description=$4, date=$5, title=$8 
        WHERE id=$6 AND user_id=$7`,
-      [type, amount, category, description, date, transaction_id, user_id]
+      [type, amount, category, description, date, transaction_id, user_id, title]
     );
 
     return NextResponse.json({ success: true }, { status: 200 });

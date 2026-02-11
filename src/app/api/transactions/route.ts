@@ -31,8 +31,8 @@ export async function POST(req: Request) {
 
   const user_id = session?.user?.id;
   try {
-    const { type, amount, category, description, date } = await req.json();
-    if (!type || !amount || !category || !date) {
+    const { type, amount, category, description, title, date } = await req.json();
+    if (!type || !amount || !category || !date || !title) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 },
@@ -40,9 +40,9 @@ export async function POST(req: Request) {
     }
     await pool.query(
       `INSERT INTO transactions 
-   (user_id, type, amount, category, description, date) 
+   (user_id, type, amount, category, description, title, date) 
    VALUES ($1, $2, $3, $4, $5, $6)`,
-      [user_id, type, amount, category, description, date],
+      [user_id, type, amount, category, description, title, date],
     );
     return new NextResponse(JSON.stringify({ success: true }), { status: 201 });
   } catch (err) {
