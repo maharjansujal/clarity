@@ -11,7 +11,7 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-800 dark:to-indigo-800 p-6">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-800 dark:to-indigo-800 p-6">
       <h1 className="text-4xl font-bold mb-4 text-slate-900 dark:text-white">
         Clarity
       </h1>
