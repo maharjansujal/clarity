@@ -3,7 +3,7 @@ import { hash } from "bcrypt";
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const {name, email, password } = await req.json();
 
     // Check if user exists
     const res = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -16,7 +16,8 @@ export async function POST(req: Request) {
 
     // Hash password & insert user
     const hashed = await hash(password, 10);
-    await pool.query("INSERT INTO users (email, password) VALUES ($1, $2)", [
+    await pool.query("INSERT INTO users (name, email, password) VALUES ($1, $2, $3)", [
+      name,
       email,
       hashed,
     ]);

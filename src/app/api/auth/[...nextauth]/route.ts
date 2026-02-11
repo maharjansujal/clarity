@@ -11,6 +11,7 @@ export const authOptions: AuthOptions = {
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
+        name: {label: "Name", type: "text"}
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
@@ -36,6 +37,8 @@ export const authOptions: AuthOptions = {
   ],
   session: {
     strategy: "jwt",
+    maxAge: 15 * 60, // max life time of the session (15 mins)
+    updateAge: 60, // how often NextAuth refreshes the JWT automatically when the user is active
   },
   pages: {
     signIn: "/login",
