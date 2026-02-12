@@ -2,13 +2,17 @@
 
 import { Transaction } from "@/types/transaction";
 import { Calendar, DollarSign, MoreVertical, Tag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import TransactionForm from "./TransactionForm";
 
 export default function TransactionList() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   // Fetch transactions on mount
   useEffect(() => {
@@ -25,11 +29,52 @@ export default function TransactionList() {
     fetchTransactions();
   }, []);
 
+  // close menu if clicked outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   // Function to add new transaction to state
-  const handleAddTransaction = (newTransaction: Transaction) => {
-    setTransactions((prev) => [newTransaction, ...prev]);
+  function handleSaveTransaction(transaction: Transaction) {
+    if (editingTransaction) {
+      // update existing transaction
+      setTransactions((prev) =>
+        prev.map((t) => (t.id === transaction.id ? transaction : t)),
+      );
+    } else {
+      // add new transaction
+      setTransactions((prev) => [transaction, ...prev]);
+    }
     setModalOpen(false);
-  };
+    setEditingTransaction(null);
+  }
+
+  async function handleDeleteTransaction(transaction: Transaction) {
+    try {
+      const res = await fetch(`/api/transactions/${transaction.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to delete the transaction");
+      }
+
+      setTransactions((prevTransactions) =>
+        prevTransactions.filter((t) => t.id !== transaction.id),
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   return (
     <div className="rounded-3xl shadow-sm p-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -38,7 +83,7 @@ export default function TransactionList() {
         <h2 className="text-xl font-bold">Transactions</h2>
         <button
           onClick={() => setModalOpen(true)}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition"
+          className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition cursor-pointer"
         >
           + Add Transaction
         </button>
@@ -47,9 +92,9 @@ export default function TransactionList() {
       {/* Transaction List */}
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {transactions.length > 0 ? (
-          transactions.map((transaction, idx) => (
+          transactions.map((transaction) => (
             <div
-              key={transaction.id} // use transaction.id instead of idx
+              key={transaction.id}
               className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group rounded-xl"
             >
               <div className="flex items-center justify-between">
@@ -104,15 +149,52 @@ export default function TransactionList() {
                     </p>
                   </div>
 
-                  <button className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
-                    <MoreVertical className="w-5 h-5 text-gray-400" />
-                  </button>
+                  <div className="relative">
+                    <button
+                      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenMenuId(
+                          openMenuId === transaction.id ? null : transaction.id,
+                        );
+                      }}
+                    >
+                      <MoreVertical className="w-5 h-5 text-gray-400" />
+                    </button>
+
+                    {openMenuId === transaction.id && (
+                      <div className="absolute right-0 mt-2 w-24 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-10">
+                        <button
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => {
+                            setEditingTransaction(transaction);
+                            setModalOpen(true);
+                            setOpenMenuId(null);
+                          }}
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => {
+                            handleDeleteTransaction(transaction);
+                            setOpenMenuId(null);
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <p className="text-gray-500 dark:text-gray-400">No transactions found</p>
+          <p className="text-gray-500 dark:text-gray-400">
+            No transactions found
+          </p>
         )}
       </div>
 
@@ -121,9 +203,12 @@ export default function TransactionList() {
         <Modal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
-          title="Add Transaction"
+          title={editingTransaction ? "Edit Transaction" : "Add Transaction"}
         >
-          <TransactionForm onSubmit={handleAddTransaction} />
+          <TransactionForm
+            editingTransaction={editingTransaction ?? undefined}
+            onSubmit={handleSaveTransaction}
+          />
         </Modal>
       )}
     </div>

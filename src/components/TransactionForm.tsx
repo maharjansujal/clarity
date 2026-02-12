@@ -10,7 +10,7 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type FormTransaction = Omit<Transaction, "id" | "user_id" | "created_at">;
 
@@ -42,13 +42,31 @@ const expenseCategories = [
 ];
 
 export default function TransactionForm({
+  editingTransaction,
   onSubmit,
   onCancel,
 }: {
+  editingTransaction?: Transaction;
   onSubmit?: (data: Transaction) => void;
   onCancel?: () => void;
 }) {
   const [formData, setFormData] = useState<FormTransaction>(initialState);
+
+  useEffect(() => {
+    if (editingTransaction) {
+      console.log(editingTransaction);
+      setFormData({
+        title: editingTransaction.title,
+        description: editingTransaction.description,
+        type: editingTransaction.type,
+        amount: editingTransaction.amount,
+        category: editingTransaction.category,
+        date: editingTransaction.date ? editingTransaction.date.split("T")[0] : "",
+      });
+    } else {
+      setFormData(initialState);
+    }
+  }, [editingTransaction]);
 
   const categories =
     formData.type === "income" ? incomeCategories : expenseCategories;
@@ -75,11 +93,16 @@ export default function TransactionForm({
     }));
   }
 
-  async function handleSubmit(e: React.SubmitEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const res = await fetch("/api/transactions", {
-      method: "POST",
+    const method = editingTransaction ? "PUT" : "POST";
+    const url = editingTransaction
+      ? `/api/transactions/${editingTransaction.id}`
+      : "/api/transactions";
+
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     });
@@ -90,8 +113,8 @@ export default function TransactionForm({
       return;
     }
 
-    const savedTransaction: Transaction = await res.json(); // should return saved transaction with id etc.
-    if (onSubmit) onSubmit(savedTransaction); // call callback
+    const savedTransaction = await res.json();
+    if (onSubmit) onSubmit(savedTransaction);
     setFormData(initialState);
   }
 

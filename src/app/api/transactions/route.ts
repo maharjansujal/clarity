@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       `INSERT INTO transactions 
    (user_id, type, amount, category, description, title, date)
    VALUES ($1,$2,$3,$4,$5,$6,$7) 
-   RETURNING *`, // <-- returns full row
+   RETURNING *`,
       [user_id, type, amount, category, description, title, date],
     );
 
