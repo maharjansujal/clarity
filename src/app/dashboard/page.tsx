@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import TransactionList from "@/components/TransactionList";
 
 export default async function DashboardPage() {

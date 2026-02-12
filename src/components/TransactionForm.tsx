@@ -10,6 +10,7 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type FormTransaction = Omit<Transaction, "id" | "user_id" | "created_at">;
@@ -23,14 +24,14 @@ export const initialState: FormTransaction = {
   date: "",
 };
 
-const incomeCategories = [
+export const incomeCategories = [
   { value: "salary", label: "Salary" },
   { value: "freelance", label: "Freelance" },
   { value: "investment", label: "Investment" },
   { value: "other-income", label: "Other Income" },
 ];
 
-const expenseCategories = [
+export const expenseCategories = [
   { value: "food", label: "Food & Dining" },
   { value: "transportation", label: "Transportation" },
   { value: "shopping", label: "Shopping" },
@@ -51,6 +52,7 @@ export default function TransactionForm({
   onCancel?: () => void;
 }) {
   const [formData, setFormData] = useState<FormTransaction>(initialState);
+  const router = useRouter();
 
   useEffect(() => {
     if (editingTransaction) {
@@ -93,7 +95,7 @@ export default function TransactionForm({
     }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
 
     const method = editingTransaction ? "PUT" : "POST";
@@ -106,6 +108,10 @@ export default function TransactionForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     });
+
+    if (res.status===401){
+      router.push('/login')
+    }
 
     if (!res.ok) {
       const error = await res.json();
@@ -130,7 +136,7 @@ export default function TransactionForm({
           <button
             type="button"
             onClick={() => handleTypeChange("income")}
-            className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all
+            className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all cursor-pointer
               ${
                 formData.type === "income"
                   ? "bg-linear-to-r from-emerald-500 to-emerald-600 text-white"
@@ -144,7 +150,7 @@ export default function TransactionForm({
           <button
             type="button"
             onClick={() => handleTypeChange("expense")}
-            className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all
+            className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all cursor-pointer
               ${
                 formData.type === "expense"
                   ? "bg-linear-to-r from-red-500 to-red-600 text-white"
@@ -159,7 +165,7 @@ export default function TransactionForm({
       {/* Title */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Title *
+          Title <span className="text-red-500">*</span>
         </label>
 
         <div className="relative">
@@ -182,7 +188,7 @@ export default function TransactionForm({
       {/* Amount */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Amount *
+          Amount <span className="text-red-500">*</span>
         </label>
 
         <div className="relative">
@@ -206,7 +212,7 @@ export default function TransactionForm({
       {/* Category */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Category *
+          Category <span className="text-red-500">*</span>
         </label>
 
         <div className="relative">
@@ -223,7 +229,6 @@ export default function TransactionForm({
             focus:outline-none focus:ring-2 focus:ring-indigo-500
             appearance-none transition-all"
           >
-            <option value="">Select a category</option>
             {categories.map((cat) => (
               <option key={cat.value} value={cat.value}>
                 {cat.label}
@@ -236,7 +241,7 @@ export default function TransactionForm({
       {/* Date */}
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Date *
+          Date <span className="text-red-500">*</span>
         </label>
 
         <div className="relative">
@@ -291,7 +296,7 @@ export default function TransactionForm({
           border border-gray-300 dark:border-gray-600
           text-gray-700 dark:text-gray-300
           hover:bg-gray-100 dark:hover:bg-gray-800
-          transition-colors font-semibold"
+          transition-colors font-semibold cursor-pointer"
         >
           Cancel
         </button>

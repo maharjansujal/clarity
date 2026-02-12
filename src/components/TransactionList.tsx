@@ -5,6 +5,8 @@ import { Calendar, DollarSign, MoreVertical, Tag } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import TransactionForm from "./TransactionForm";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function TransactionList() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -14,6 +16,14 @@ export default function TransactionList() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
   // Fetch transactions on mount
   useEffect(() => {
     async function fetchTransactions() {
@@ -126,7 +136,7 @@ export default function TransactionList() {
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
-                        {transaction.date}
+                        {transaction.date ? transaction.date.split("T")[0] : ""}
                       </span>
                     </div>
                   </div>
@@ -163,9 +173,9 @@ export default function TransactionList() {
                     </button>
 
                     {openMenuId === transaction.id && (
-                      <div className="absolute right-0 mt-2 w-24 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-10">
+                      <div ref={menuRef} className="absolute right-0 mt-2 w-24 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-10">
                         <button
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                           onClick={() => {
                             setEditingTransaction(transaction);
                             setModalOpen(true);
@@ -176,7 +186,7 @@ export default function TransactionList() {
                         </button>
 
                         <button
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                           onClick={() => {
                             handleDeleteTransaction(transaction);
                             setOpenMenuId(null);
@@ -208,6 +218,7 @@ export default function TransactionList() {
           <TransactionForm
             editingTransaction={editingTransaction ?? undefined}
             onSubmit={handleSaveTransaction}
+            onCancel={() => setModalOpen(false)}
           />
         </Modal>
       )}
