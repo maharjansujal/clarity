@@ -3,6 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import TransactionList from "@/components/TransactionList";
 import { pool } from "@/lib/db"; // your pg pool
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -36,14 +37,7 @@ export default async function DashboardPage() {
             <span className="text-sm text-slate-600 dark:text-slate-300">
               {session.user?.email}
             </span>
-            <form action="/api/auth/signout" method="POST">
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm bg-red-500 text-white rounded-lg"
-              >
-                Logout
-              </button>
-            </form>
+           <LogoutButton/>
           </div>
         </div>
 

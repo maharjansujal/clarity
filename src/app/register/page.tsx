@@ -72,7 +72,7 @@ export default function Signup() {
           </div>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
-             {/* Email Input */}
+            {/* Name Input */}
             <div>
               <label
                 htmlFor="name"
@@ -86,7 +86,12 @@ export default function Signup() {
                   id="name"
                   type="text"
                   placeholder="Enter your name"
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400 dark:focus:ring-indigo-400 transition-all"
+                  className="w-full pl-12 pr-12 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:focus:ring-indigo-400 transition-all
+                  [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset]
+                  dark:[&:-webkit-autofill]:shadow-[0_0_0_1000px_#334155_inset] 
+                  [&:-webkit-autofill]:[-webkit-text-fill-color:var(--color-slate-900)]
+                  dark:[&:-webkit-autofill]:[-webkit-text-fill-color:white]
+                  [transition:background-color_9999s_ease-in-out_0s]"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -106,7 +111,12 @@ export default function Signup() {
                   id="email"
                   type="email"
                   placeholder="Enter your email"
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400 dark:focus:ring-indigo-400 transition-all"
+                  className="w-full pl-12 pr-12 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:focus:ring-indigo-400 transition-all
+                  [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset]
+                  dark:[&:-webkit-autofill]:shadow-[0_0_0_1000px_#334155_inset] 
+                  [&:-webkit-autofill]:[-webkit-text-fill-color:var(--color-slate-900)]
+                  dark:[&:-webkit-autofill]:[-webkit-text-fill-color:white]
+                  [transition:background-color_9999s_ease-in-out_0s]"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -127,7 +137,12 @@ export default function Signup() {
                   id="password"
                   type={passwordVisible ? "text" : "password"}
                   placeholder="Password"
-                  className="w-full pl-12 pr-12 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400 dark:focus:ring-indigo-400 transition-all"
+                  className="w-full pl-12 pr-12 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:focus:ring-indigo-400 transition-all
+                  [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset]
+                  dark:[&:-webkit-autofill]:shadow-[0_0_0_1000px_#334155_inset] 
+                  [&:-webkit-autofill]:[-webkit-text-fill-color:var(--color-slate-900)]
+                  dark:[&:-webkit-autofill]:[-webkit-text-fill-color:white]
+                  [transition:background-color_9999s_ease-in-out_0s]"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -160,7 +175,12 @@ export default function Signup() {
                   id="confirm-password"
                   type={confirmPasswordVisible ? "text" : "password"}
                   placeholder="Confirm Password"
-                  className="w-full pl-12 pr-12 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400 dark:focus:ring-indigo-400 transition-all"
+                  className="w-full pl-12 pr-12 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:focus:ring-indigo-400 transition-all
+                  [&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset]
+                  dark:[&:-webkit-autofill]:shadow-[0_0_0_1000px_#334155_inset] 
+                  [&:-webkit-autofill]:[-webkit-text-fill-color:var(--color-slate-900)]
+                  dark:[&:-webkit-autofill]:[-webkit-text-fill-color:white]
+                  [transition:background-color_9999s_ease-in-out_0s]"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
@@ -183,7 +203,7 @@ export default function Signup() {
             {/* Sign Up Button */}
             <button
               type="submit"
-              className="w-full py-3.5 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all dark:from-indigo-500 dark:to-purple-600 dark:hover:scale-[1.02]"
+              className="w-full cursor-pointer py-3.5 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl transition-all dark:from-indigo-500 dark:to-purple-600 dark:hover:scale-[1.02]"
             >
               {loading ? "Loading..." : "Sign Up"}
             </button>
