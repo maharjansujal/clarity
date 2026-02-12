@@ -1,10 +1,13 @@
 "use client";
 
 import { Transaction } from "@/types/transaction";
-import { Calendar, DollarSign, MoreVertical, Tag } from "lucide-react";
+import { Calendar, DollarSign, Loader2, MoreVertical, Tag } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
-import TransactionForm from "./TransactionForm";
+import TransactionForm, {
+  expenseCategories,
+  incomeCategories,
+} from "./TransactionForm";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -24,20 +27,43 @@ export default function TransactionList() {
       router.push("/login");
     }
   }, [status, router]);
+
+  const [category, setCategory] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  async function fetchTransactions() {
+    try {
+      setLoading(true);
+
+      const params = new URLSearchParams();
+      if (category) params.append("category", category);
+      if (from) params.append("from", from);
+      if (to) params.append("to", to);
+
+      const res = await fetch(`/api/transactions?${params.toString()}`);
+      const data = await res.json();
+
+      setTransactions(data.transactions);
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // Fetch transactions on mount
   useEffect(() => {
-    async function fetchTransactions() {
-      try {
-        const res = await fetch("/api/transactions");
-        if (!res.ok) throw new Error("Failed to fetch transactions");
-        const data = await res.json();
-        setTransactions(data.transactions ?? []);
-      } catch (err) {
-        console.error(err);
-      }
-    }
     fetchTransactions();
-  }, []);
+  }, [category, from, to]);
 
   // close menu if clicked outside
   useEffect(() => {
@@ -86,6 +112,12 @@ export default function TransactionList() {
     }
   }
 
+  function handleClearFilters() {
+    setCategory("");
+    setFrom("");
+    setTo("");
+  }
+
   return (
     <div className="rounded-3xl shadow-sm p-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Header */}
@@ -98,10 +130,82 @@ export default function TransactionList() {
           + Add Transaction
         </button>
       </div>
+      {/* Filter */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6 items-end">
+        {/* Category */}
+        <div className="flex flex-col w-full md:w-auto">
+          <label className="mb-1 text-sm text-gray-600 dark:text-gray-400">
+            Category
+          </label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="px-4 py-3 rounded-xl
+        border border-gray-300 dark:border-gray-600
+        bg-white dark:bg-gray-800
+        text-gray-900 dark:text-gray-100
+        focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">All Categories</option>
+            {expenseCategories.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
+              </option>
+            ))}
+            {incomeCategories.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* From Date */}
+        <div className="flex flex-col w-full md:w-auto">
+          <label className="mb-1 text-sm text-gray-600 dark:text-gray-400">
+            From
+          </label>
+          <input
+            type="date"
+            value={from}
+            min={from || undefined}
+            onChange={(e) => setFrom(e.target.value)}
+            className="px-4 py-3 rounded-xl
+        border border-gray-300 dark:border-gray-600
+        bg-white dark:bg-gray-800
+        text-gray-900 dark:text-gray-100
+        focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        {/* To Date */}
+        <div className="flex flex-col w-full md:w-auto">
+          <label className="mb-1 text-sm text-gray-600 dark:text-gray-400">
+            To
+          </label>
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            max={to || undefined}
+            className="px-4 py-3 rounded-xl
+        border border-gray-300 dark:border-gray-600
+        bg-white dark:bg-gray-800
+        text-gray-900 dark:text-gray-100
+        focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+      </div>
 
       {/* Transaction List */}
+      {/* Transaction List */}
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        {transactions.length > 0 ? (
+        {loading ? (
+          <div className="py-10 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <Loader2 className="w-6 h-6 animate-spin text-indigo-600 mb-2" />
+            <p className="text-sm">Loading transactions...</p>
+          </div>
+        ) : transactions.length > 0 ? (
           transactions.map((transaction) => (
             <div
               key={transaction.id}
@@ -159,6 +263,7 @@ export default function TransactionList() {
                     </p>
                   </div>
 
+                  {/* Menu Button */}
                   <div className="relative">
                     <button
                       className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
@@ -173,7 +278,10 @@ export default function TransactionList() {
                     </button>
 
                     {openMenuId === transaction.id && (
-                      <div ref={menuRef} className="absolute right-0 mt-2 w-24 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-10">
+                      <div
+                        ref={menuRef}
+                        className="absolute right-0 mt-2 w-24 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-md z-10"
+                      >
                         <button
                           className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                           onClick={() => {
@@ -202,9 +310,9 @@ export default function TransactionList() {
             </div>
           ))
         ) : (
-          <p className="text-gray-500 dark:text-gray-400">
+          <div className="py-10 text-center text-gray-500 dark:text-gray-400">
             No transactions found
-          </p>
+          </div>
         )}
       </div>
 

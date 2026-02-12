@@ -3,24 +3,47 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
-  const user_id = session.user.id;
-  try {
-    const result = await pool.query(
-      "SELECT * FROM transactions WHERE user_id = $1",
-      [user_id],
-    );
-    return NextResponse.json({ transactions: result.rows }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Error in fetching transactions" },
-      { status: 400 },
-    );
+
+  const userId = session.user.id;
+
+  const { searchParams } = new URL(req.url);
+  const category = searchParams.get("category");
+  const from = searchParams.get("from");
+  const to = searchParams.get("to");
+
+  let query = `
+    SELECT * FROM transactions 
+    WHERE user_id = $1
+  `;
+
+  const values: (string | number)[] = [userId];
+  let index = 2;
+
+  if (category) {
+    query += ` AND category = $${index++}`;
+    values.push(category);
   }
+
+  if (from) {
+    query += ` AND date >= $${index++}`;
+    values.push(from);
+  }
+
+  if (to) {
+    query += ` AND date <= $${index++}`;
+    values.push(to);
+  }
+
+  query += ` ORDER BY date DESC`;
+
+  const result = await pool.query(query, values);
+
+  return NextResponse.json({ transactions: result.rows });
 }
 
 export async function POST(req: Request) {
