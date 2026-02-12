@@ -1,5 +1,6 @@
 "use client";
 
+import { useTransactionContainer } from "@/container/TransactionContainer";
 import { Transaction } from "@/types/transaction";
 import {
   Calendar,
@@ -51,19 +52,21 @@ export default function TransactionForm({
   onSubmit?: (data: Transaction) => void;
   onCancel?: () => void;
 }) {
+  const { addTransaction, updateTransaction } = useTransactionContainer();
+
   const [formData, setFormData] = useState<FormTransaction>(initialState);
-  const router = useRouter();
 
   useEffect(() => {
     if (editingTransaction) {
-      console.log(editingTransaction);
       setFormData({
         title: editingTransaction.title,
         description: editingTransaction.description,
         type: editingTransaction.type,
         amount: editingTransaction.amount,
         category: editingTransaction.category,
-        date: editingTransaction.date ? editingTransaction.date.split("T")[0] : "",
+        date: editingTransaction.date
+          ? editingTransaction.date.split("T")[0]
+          : "",
       });
     } else {
       setFormData(initialState);
@@ -80,48 +83,33 @@ export default function TransactionForm({
   ) {
     const key = e.target.name;
     const value = e.target.value;
-
-    setFormData((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [key]: value }));
   }
 
   function handleTypeChange(type: "income" | "expense") {
-    setFormData((prev) => ({
-      ...prev,
-      type,
-      category: "", // reset category when switching type
-    }));
+    setFormData((prev) => ({ ...prev, type, category: "" }));
   }
 
-  async function handleSubmit(e: React.SubmitEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const method = editingTransaction ? "PUT" : "POST";
-    const url = editingTransaction
-      ? `/api/transactions/${editingTransaction.id}`
-      : "/api/transactions";
+    try {
+      let savedTransaction: Transaction;
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+      if (editingTransaction) {
+        savedTransaction = { ...editingTransaction, ...formData };
+        await updateTransaction(savedTransaction);
+      } else {
+        savedTransaction = formData as Transaction;
+        await addTransaction(savedTransaction);
+      }
 
-    if (res.status===401){
-      router.push('/login')
+      setFormData(initialState);
+      if (onSubmit) onSubmit(savedTransaction);
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong!");
     }
-
-    if (!res.ok) {
-      const error = await res.json();
-      alert(error.message);
-      return;
-    }
-
-    const savedTransaction = await res.json();
-    if (onSubmit) onSubmit(savedTransaction);
-    setFormData(initialState);
   }
 
   return (

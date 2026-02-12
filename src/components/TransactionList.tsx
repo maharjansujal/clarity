@@ -8,114 +8,58 @@ import TransactionForm, {
   expenseCategories,
   incomeCategories,
 } from "./TransactionForm";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import {
+  TransactionProvider,
+  useTransactionContainer,
+} from "@/container/TransactionContainer";
 
-export default function TransactionList() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+function Content() {
+  const {
+    transactions,
+    loading,
+    category,
+    setCategory,
+    from,
+    setFrom,
+    to,
+    setTo,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    clearFilters,
+  } = useTransactionContainer();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    }
-  }, [status, router]);
-
-  const [category, setCategory] = useState("");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    }
-  }, [status, router]);
-
-  async function fetchTransactions() {
-    try {
-      setLoading(true);
-
-      const params = new URLSearchParams();
-      if (category) params.append("category", category);
-      if (from) params.append("from", from);
-      if (to) params.append("to", to);
-
-      const res = await fetch(`/api/transactions?${params.toString()}`);
-      const data = await res.json();
-
-      setTransactions(data.transactions);
-    } catch (error) {
-      console.error("Failed to fetch transactions:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Fetch transactions on mount
-  useEffect(() => {
-    fetchTransactions();
-  }, [category, from, to]);
-
-  // close menu if clicked outside
+  // Close menu if clicked outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setOpenMenuId(null);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Function to add new transaction to state
-  function handleSaveTransaction(transaction: Transaction) {
+  // Handle saving (add/update)
+  async function handleSaveTransaction(transaction: Transaction) {
     if (editingTransaction) {
-      // update existing transaction
-      setTransactions((prev) =>
-        prev.map((t) => (t.id === transaction.id ? transaction : t)),
-      );
+      await updateTransaction(transaction);
     } else {
-      // add new transaction
-      setTransactions((prev) => [transaction, ...prev]);
+      await addTransaction(transaction);
     }
     setModalOpen(false);
     setEditingTransaction(null);
   }
 
+  // Handle delete
   async function handleDeleteTransaction(transaction: Transaction) {
-    try {
-      const res = await fetch(`/api/transactions/${transaction.id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        throw new Error("Failed to delete the transaction");
-      }
-
-      setTransactions((prevTransactions) =>
-        prevTransactions.filter((t) => t.id !== transaction.id),
-      );
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  function handleClearFilters() {
-    setCategory("");
-    setFrom("");
-    setTo("");
+    await deleteTransaction(transaction.id);
   }
 
   return (
@@ -195,9 +139,16 @@ export default function TransactionList() {
         focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
+        <button
+          disabled={!from && !to && !category}
+          className="px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600
+             disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={clearFilters}
+        >
+          Clear
+        </button>
       </div>
 
-      {/* Transaction List */}
       {/* Transaction List */}
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {loading ? (
@@ -206,7 +157,7 @@ export default function TransactionList() {
             <p className="text-sm">Loading transactions...</p>
           </div>
         ) : transactions.length > 0 ? (
-          transactions.map((transaction) => (
+          (transactions || []).map((transaction) => (
             <div
               key={transaction.id}
               className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group rounded-xl"
@@ -331,5 +282,13 @@ export default function TransactionList() {
         </Modal>
       )}
     </div>
+  );
+}
+
+export default function TransactionList() {
+  return (
+    <TransactionProvider>
+      <Content />
+    </TransactionProvider>
   );
 }
